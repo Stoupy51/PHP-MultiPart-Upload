@@ -11,15 +11,15 @@
 
 
 
-// Constants (CHUNK_SIZE = 8 MB)
-const CHUNK_SIZE = 1024 * 1024 * 8;
+// Constants (CHUNK_SIZE = 1 MB)
+const CHUNK_SIZE = 1024 * 1024;
 const form = document.getElementById("form");
 const fileInput = document.getElementById("file_input");
-console.log(fileInput);
+const receiverLink = "receiver.php";
 
 // Variables
 var simultaneousUploads = 0;
-var simultaneousUploadsMax = 100;	// Maximum number of simultaneous uploads (Here, taking 800 MB of RAM)
+var simultaneousUploadsMax = 50;	// Maximum number of simultaneous uploads (Here, taking 50 MB of RAM)
 var totalFileChunks = 0;			// Total number of file chunks
 
 // Add an event listener to the form
@@ -51,8 +51,8 @@ function handleSubmit(event) {
 	reader.onload = async function() {
 		// Wait if there are too many simultaneous uploads
 		while (simultaneousUploads >= simultaneousUploadsMax) {
-			// Wait 1s before checking again
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			// Wait 1ms before checking again
+			await new Promise(resolve => setTimeout(resolve, 1));
 		}
 
 		// Get the current chunk of data and send it to the server
@@ -70,14 +70,23 @@ function handleSubmit(event) {
 			reader.readAsArrayBuffer(nextChunk);
 		}
 		else {
-			// Send to the server the total number of file chunks
-			fetch("receive.php", {
+			// Wait for all the uploads to finish
+			while (simultaneousUploads > 0) {
+				// Wait 1ms before checking again
+				await new Promise(resolve => setTimeout(resolve, 1));
+			}
+
+			// Send to the server the total number of file chunks and the filename
+			const formData = new FormData();
+			formData.append("totalFileChunks", totalFileChunks);
+			formData.append("filename", file.name);
+			const response = await fetch(receiverLink, {
 				method: "POST",
-				body: JSON.stringify({
-					totalFileChunks: totalFileChunks,
-					filename: file.name
-				})
+				body: formData
 			});
+
+			// Print the response html body
+			console.log("Upload finished. Response: '" + await response.text() + "'");
 		}
 	};
 
@@ -98,11 +107,11 @@ async function uploadFile(number, chunk) {
 	// Increment the number of simultaneous uploads
 	simultaneousUploads++;
 
-	// Send the file chunk to the server with the name "filename@@@number" (e.g. "file@@@1")
-	const newFilename = fileInput.files[0].name + "@@@" + number;
+	// Send the file chunk to the server with the name "filename.partX" (e.g. "file.part1")
+	const newFilename = fileInput.files[0].name + ".part" + number;
 	const formData = new FormData();
 	formData.append("file", new Blob([chunk]), newFilename);
-	const response = await fetch("receive.php", {
+	const response = await fetch(receiverLink, {
 		method: "POST",
 		body: formData
 	});
@@ -111,7 +120,7 @@ async function uploadFile(number, chunk) {
 	simultaneousUploads--;
 
 	// Print the response html body
-	console.log(await response.text());
+	console.log("Upload " + number + " finished. Response: '" + await response.text() + "'");
 }
 
 
