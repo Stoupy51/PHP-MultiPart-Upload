@@ -15,12 +15,15 @@
 const CHUNK_SIZE = 1024 * 1024 * 20;
 const form = document.getElementById("form");
 const fileInput = document.getElementById("file_input");
+const button = document.getElementById("button");
 const receiverLink = "receiver.php";
 
 // Variables
 var simultaneousUploads = 0;
-var simultaneousUploadsMax = 50;	// Maximum number of simultaneous uploads (Here, taking 50 * 20 = 1000 MB of RAM)
-var totalFileChunks = 0;			// Total number of file chunks
+var simultaneousUploadsMax = 50;		// Maximum number of simultaneous uploads (Here, taking 20 * 50 = 1000 MB of RAM)
+var totalFileChunks = 0;				// Total number of file chunks
+var isRunning = false;					// Is the script running?
+var controller = new AbortController();	// Abort controller to cancel the async functions
 
 // Add an event listener to the form
 form.addEventListener("submit", handleSubmit);
@@ -39,11 +42,41 @@ function handleSubmit(event) {
 	// Prevent the default form submission
 	event.preventDefault();
 
+	// Check if the script is already running, if yes, stop every async functions and send a cancel request to the server
+	if (isRunning) {
+
+		// Send a cancel request to the server with the filename
+		const formData = new FormData();
+		formData.append("filename", fileInput.files[0].name);
+		formData.append("cancel", true);
+		fetch(receiverLink, {
+			method: "POST",
+			body: formData
+		});
+
+		// Console log
+		console.log("Cancelled upload of '" + fileInput.files[0].name + "'");
+
+		// Stop every async functions (stop requests, stop reading the file, etc.)
+		controller.abort();
+		controller = new AbortController();
+
+		// Reset the form
+		button.innerHTML = "Upload";
+		isRunning = false;
+		return;
+	}
+
+	// Change the button text and the script as running
+	button.innerHTML = "Cancel";
+	isRunning = true;
+
 	// Get the file from the input element, create a new file reader, and variable
 	const reader = new FileReader();
 	const file = fileInput.files[0];
 	let currentPosition = 0;			// Current position in the file (in bytes)
 	totalFileChunks = 0;				// Reset the total number of file chunks
+	simultaneousUploads = 0;			// Reset the number of simultaneous uploads
 
 	/**
 	 * Handle the file reader load event to send the file chunks to the server.
@@ -58,7 +91,7 @@ function handleSubmit(event) {
 		// Get the current chunk of data and send it to the server
 		const chunk = reader.result;
 		totalFileChunks++;
-		uploadFile(totalFileChunks, chunk);
+		uploadFile(totalFileChunks, chunk, controller);
 
 		// Update the current position in the file
 		currentPosition += chunk.byteLength;
@@ -82,17 +115,22 @@ function handleSubmit(event) {
 			formData.append("filename", file.name);
 			const response = await fetch(receiverLink, {
 				method: "POST",
-				body: formData
+				body: formData,
+				signal: controller.signal
 			});
 
 			// Print the response html body
 			console.log("Upload finished. Response: '" + await response.text() + "'");
+
+			// Reset the form
+			button.innerHTML = "Upload";
+			isRunning = false;
 		}
 	};
 
 	// Start reading the file
 	const firstChunk = file.slice(0, CHUNK_SIZE);
-	reader.readAsArrayBuffer(firstChunk);
+	reader.readAsArrayBuffer(firstChunk, { signal: controller.signal });
 }
 
 
@@ -101,8 +139,9 @@ function handleSubmit(event) {
  * 
  * @param {int} number The file chunk number (starting at 1)
  * @param {ArrayBuffer} chunk The file chunk to send
+ * @param {AbortController} controller The abort controller to stop the async function
  */
-async function uploadFile(number, chunk) {
+async function uploadFile(number, chunk, controller) {
 
 	// Increment the number of simultaneous uploads
 	simultaneousUploads++;
@@ -111,16 +150,24 @@ async function uploadFile(number, chunk) {
 	const newFilename = fileInput.files[0].name + ".part" + number;
 	const formData = new FormData();
 	formData.append("file", new Blob([chunk]), newFilename);
-	const response = await fetch(receiverLink, {
-		method: "POST",
-		body: formData
-	});
+	try {
+		const response = await fetch(receiverLink, {
+			method: "POST",
+			body: formData,
+			signal: controller.signal
+		});
 
-	// Decrement the number of simultaneous uploads when the upload is finished
-	simultaneousUploads--;
+		// Wait for the response
+		await response.text();
 
-	// Print the response html body
-	console.log("Upload " + number + " finished. Response: '" + await response.text() + "'");
+		// Decrement the number of simultaneous uploads when the upload is finished
+		simultaneousUploads--;
+	}
+	catch (error) {
+		// If the request is aborted, stop the function
+		if (error.name === "AbortError")
+			return;
+	}
 }
 
 

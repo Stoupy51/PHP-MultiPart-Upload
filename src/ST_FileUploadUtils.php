@@ -107,6 +107,58 @@ class ST_FileUploadUtils {
 			if (!unlink($chunkPath))
 				throw new Exception("[Error mergeFileChunks()] Could not delete file '$chunkPath'.");
 		}
-	}	
+	}
+
+	/**
+	 * Cancels the file upload by deleting the temporary files containing the same base name.
+	 * 
+	 * @param string $filename		The name of the file.
+	 * 
+	 * @throws Exception			The file could not be deleted.
+	 * 
+	 * @return void
+	 */
+	public static function cancelUpload($filename) : void {
+		$files = glob(self::TEMPORARY_FILES_FOLDER . "/" . $filename . "*");
+		if ($files === false)
+			throw new Exception("[Error cancelUpload()] Could not get files with base name '$filename'.");
+		foreach ($files as $file)
+			if (!unlink($file))
+				throw new Exception("[Error cancelUpload()] Could not delete file '$file'.");
+	}
+
+	/**
+	 * Returns the HTML for the file upload form.
+	 * 
+	 * @return string
+	 */
+	public static function getHTML() : string {
+		return <<<HTML
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Split File Validation</title>
+</head>
+<body>
+	<h1>Split File Validation Example</h1>
+	<form id="form">
+		<label>
+			Select a file:
+			<input type="file" id="file_input" required>
+		</label>
+		<br>
+		<button id="button" type="submit">Submit</button>
+	</form>
+
+	<script type="text/javascript" src="upload.js"></script>
+</body>
+</html>
+
+HTML;
+
+
+	}
 }
 
