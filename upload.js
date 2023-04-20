@@ -11,15 +11,15 @@
 
 
 
-// Constants (CHUNK_SIZE = 1 MB)
-const CHUNK_SIZE = 1024 * 1024;
+// Constants (CHUNK_SIZE = 20 MB)
+const CHUNK_SIZE = 1024 * 1024 * 20;
 const form = document.getElementById("form");
 const fileInput = document.getElementById("file_input");
 const receiverLink = "receiver.php";
 
 // Variables
 var simultaneousUploads = 0;
-var simultaneousUploadsMax = 50;	// Maximum number of simultaneous uploads (Here, taking 50 MB of RAM)
+var simultaneousUploadsMax = 50;	// Maximum number of simultaneous uploads (Here, taking 50 * 20 = 1000 MB of RAM)
 var totalFileChunks = 0;			// Total number of file chunks
 
 // Add an event listener to the form
