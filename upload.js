@@ -104,7 +104,7 @@ async function progressBarUpdateLoop(controller) {
 		if (progressiveSize > previousSize) {
 
 			// Update the upload speed
-			progressSpeed.innerHTML = convertIntBytesToString(bytesPerSecond * 1000 * 8 * 1.25, "bps");
+			progressSpeed.innerHTML = convertIntBytesToString(bytesPerSecond * 1000 * 8 + 500000, "bps");
 			previousSize = progressiveSize;
 
 			// Update the time remaining using file size, current size, and time elapsed
