@@ -209,8 +209,38 @@ class ST_FileUploadUtils {
 </html>
 
 HTML;
+	}
 
+	/**
+	 * Deletes all the temporary files that are older than 1 day.
+	 * (Search only for files with the .part extension)
+	 * 
+	 * @throws Exception		- The temporary files could not be retrieved.
+	 * 							- The last modified time of a file could not be retrieved.
+	 * 							- A file could not be deleted.
+	 * 
+	 * @return void
+	 */
+	public static function deleteOldTemporaryFiles() : void {
 
+		// Get all the temporary files
+		$files = glob(self::TEMPORARY_FILES_FOLDER . "/*.part*");
+		if ($files === false)
+			throw new Exception("[Error deleteOldTemporaryFiles()] Could not get temporary files.");
+
+		// Loop through all the temporary files
+		foreach ($files as $file) {
+
+			// Get the file's last modification time
+			$lastModified = filemtime($file);
+			if ($lastModified === false)
+				throw new Exception("[Error deleteOldTemporaryFiles()] Could not get last modified time of file '$file'.");
+
+			// If the file is older than 1 day, delete it
+			if (time() - $lastModified > 86400)
+				if (!unlink($file))
+					throw new Exception("[Error deleteOldTemporaryFiles()] Could not delete file '$file'.");
+		}
 	}
 }
 
