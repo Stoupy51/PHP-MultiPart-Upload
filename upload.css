@@ -1,0 +1,63 @@
+
+/**
+ * Upload.css : CSS file for the Upload page
+ * 
+ * @author Stoupy51
+ * 
+**/
+
+html {
+	--width_size: 30rem;
+}
+
+input[type="range"], .progress_container {
+	width: var(--width_size);
+}
+
+label {
+	width: fit-content;
+	display: block;
+}
+
+.progress_container {
+	margin-top: 1rem;
+}
+
+.progress_bar {
+	width: var(--width_size);
+	display: block;
+	height: 20px;
+
+	border: 1px solid #000;
+	border-radius: 5px;
+}
+
+.progress_bar_inner {
+	background-color: rgb(0, 169, 0);
+	display: block;
+	height: 100%;
+	transition: width 1s ease;
+}
+
+.progress_text {
+	margin-top: 1rem;
+	display: flex;
+	justify-content: space-between;
+}
+
+.progress_text span {
+	display: inline-block;
+}
+
+.progress_text span:nth-child(1), .progress_text span:nth-child(3) {
+	text-decoration: underline;
+}
+
+.progress_time span {
+	display: flex;
+}
+
+.progress_time > span > span:nth-child(1) {
+	width: 25%;
+}
+

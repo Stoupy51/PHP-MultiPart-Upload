@@ -133,26 +133,78 @@ class ST_FileUploadUtils {
 	 * @return string
 	 */
 	public static function getHTML() : string {
+		$css = '<style>' . file_get_contents("upload.css") . '</style>';
+		$js = '<script type="text/javascript">' . file_get_contents("upload.js") . '</script>';
+
 		return <<<HTML
 
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Split File Validation</title>
+	<title> Chunk Splitting Uploader </title>
+	$css
 </head>
 <body>
-	<h1>Split File Validation Example</h1>
+	<h1> Chunk Splitting Uploader </h1>
 	<form id="form">
+		<datalist id="markers">
+			<option value="0"></option>
+			<option value="10"></option>
+			<option value="20"></option>
+			<option value="30"></option>
+			<option value="40"></option>
+			<option value="50"></option>
+			<option value="60"></option>
+			<option value="70"></option>
+			<option value="80"></option>
+			<option value="90"></option>
+			<option value="100"></option>
+		</datalist>
+
 		<label>
 			Select a file:
 			<input type="file" id="file_input" required>
+		</label><br>
+
+		<label for="chunk_size"> Chunk Size (between 1 and 100 MB):
+			<input type="number" id="cs_number" min="1" max="100" step="1" value="12"><br>
+			<input type="range" id="cs_range" min="1" max="100" step="1" value="12" list="markers">
+		</label><br>
+
+		<label for="simultaneous_uploads"> Simultaneous Uploads (between 1 and 100 packets):
+			<input type="number" id="su_number" min="1" max="100" step="1" value="25"><br>
+			<input type="range" id="su_range" min="1" max="100" step="1" value="25" list="markers">
+		</label><br>
+
+		<label>
+			<button id="button" type="submit"> Submit </button>
 		</label>
-		<br>
-		<button id="button" type="submit">Submit</button>
 	</form>
 
-	<script type="text/javascript" src="upload.js"></script>
+	<div id="progress_container" class="progress_container" style="display: none;">
+		<div id="progress_bar" class="progress_bar">
+			<div id="progress_bar_inner" class="progress_bar_inner" style="width: 0%;"></div>
+		</div>
+		<div id="progress_text" class="progress_text">
+			<span id="progress_state"> Uploading... </span>
+			<span id="progress_percent"></span>
+			<span id="progress_size"></span>
+			<span id="progress_speed"></span>
+		</div>
+		<div id="progress_time" class="progress_time">
+			<span>
+				<span> Time Elapsed: </span>
+				<span id="progress_time_elapsed"> - </span>
+			</span>
+			<span>
+				<span> Time Remaining: </span>
+				<span id="progress_time_remaining"> - </span>
+			</span>
+		</div>
+	</div>
+
+	$js
 </body>
 </html>
 
