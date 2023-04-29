@@ -1,3 +1,5 @@
 
-*.mp4
-*.part*
+temporary_files/*
+uploaded_files/*
+!*README.md
+

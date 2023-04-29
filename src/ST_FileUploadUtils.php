@@ -13,6 +13,7 @@ class ST_FileUploadUtils {
 
 	public const TEMPORARY_FILES_FOLDER = "temporary_files";
 	public const UPLOADED_FILES_FOLDER = "uploaded_files";
+	private const password = "8fb85e182764a8abceb4668b004014936e18f1fe1e5e413c476605b534591396";
 
 
 
@@ -27,17 +28,82 @@ class ST_FileUploadUtils {
 	 * 
 	 * @param string $folderPath	The path of the folder to create.
 	 */
-	private function createFolder($folderPath) {
+	private static function createFolder($folderPath) {
 		if (!file_exists($folderPath) && !is_dir($folderPath))
 			if (!mkdir($folderPath))
 				throw new Exception("[Error createFolder()] Could not create folder '$folderPath'.");
 	}
 
+	/**
+	 * Handles the login of the user by checking the password.
+	 * 
+	 * @param string $password		The password to check.
+	 * 
+	 * @return bool					True if the password is correct, false otherwise.
+	 */
+	private static function checkPassword($password) : bool {
+		return hash("sha256", $password) === self::password;
+	}
+
+	/**
+	 * Generates the CSS code for page.
+	 * 
+	 * @return string	The CSS code in a style tag.
+	 */
+	private static function generateCss() : string {
+		return '<style>' . file_get_contents("upload.css") . '</style>';
+	}
+
+	/**
+	 * Generates the JS code for the page.
+	 * 
+	 * @return string	The JS code in a script tag.
+	 */
+	private static function generateJs() : string {
+		return '<script type="text/javascript">' . file_get_contents("upload.js") . '</script>';
+	}
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////// Public Methods ////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Handles the login of the user by sending a form to enter the
+	 * password if no password is provided in the $_POST variable or
+	 * by checking the password was already provided (in the $_SESSION variable)
+	 * 
+	 * @return void
+	 */
+	public static function handleLogin() : void {
+
+		// Start the session
+		session_start();
+
+		// Check if the password is provided
+		if (isset($_POST["password"])) {
+
+			// Check the password
+			if (self::checkPassword($_POST["password"])) {
+
+				// Set the session variable
+				$_SESSION["password"] = $_POST["password"];
+			}
+		}
+
+		// Check if the password is set in the session variable
+		if (!isset($_SESSION["password"])) {
+
+			// Send the login form
+			echo <<<HTML
+				<form method="post" style="top: 40%; left: 50%; transform: translate(-50%, -50%); position: absolute;">
+					<input type="password" name="password" placeholder="Password" autofocus required autocomplete="off" style="width: 200px; height: 30px; font-size: 20px;">
+					<input type="submit" value="Login" style="width: 100px; height: 30px; font-size: 20px;">
+				</form>
+			HTML;
+			exit();
+		}
+	}
 
 	/**
 	 * Handles the file upload by saving the file to the temporary_files folder.
@@ -133,74 +199,103 @@ class ST_FileUploadUtils {
 	 * @return string
 	 */
 	public static function getHTML() : string {
-		$css = '<style>' . file_get_contents("upload.css") . '</style>';
-		$js = '<script type="text/javascript">' . file_get_contents("upload.js") . '</script>';
+		$css = self::generateCss();
+		$js = self::generateJs();
 
 		return <<<HTML
 
 <!DOCTYPE html>
-<html>
+<html style="height: 100%;">
 <head>
 	<meta charset="utf-8">
 	<title> Chunk Splitting Uploader </title>
 	$css
 </head>
 <body>
-	<h1> Chunk Splitting Uploader </h1>
-	<form id="form">
-		<datalist id="markers">
-			<option value="0"></option>
-			<option value="10"></option>
-			<option value="20"></option>
-			<option value="30"></option>
-			<option value="40"></option>
-			<option value="50"></option>
-			<option value="60"></option>
-			<option value="70"></option>
-			<option value="80"></option>
-			<option value="90"></option>
-			<option value="100"></option>
-		</datalist>
+	<h1 style="text-align: center;"> Chunk Splitting Uploader </h1>
 
-		<label>
-			Select a file:
-			<input type="file" id="file_input" required>
-		</label><br>
+	<div id="container" style="position: relative; width: 100%; height: 100%; display: flex; justify-content: space-around;">
 
-		<label for="chunk_size"> Chunk Size (between 1 and 100 MB):
-			<input type="number" id="cs_number" min="1" max="100" step="1" value="12"><br>
-			<input type="range" id="cs_range" min="1" max="100" step="1" value="12" list="markers">
-		</label><br>
+		<div id="upload_part">
+			<h2> Uploading a File </h2>
+			<form id="form">
+				<datalist id="markers">
+					<option value="0"></option>
+					<option value="10"></option>
+					<option value="20"></option>
+					<option value="30"></option>
+					<option value="40"></option>
+					<option value="50"></option>
+					<option value="60"></option>
+					<option value="70"></option>
+					<option value="80"></option>
+					<option value="90"></option>
+					<option value="100"></option>
+				</datalist>
 
-		<label for="simultaneous_uploads"> Simultaneous Uploads (between 1 and 100 packets):
-			<input type="number" id="su_number" min="1" max="100" step="1" value="25"><br>
-			<input type="range" id="su_range" min="1" max="100" step="1" value="25" list="markers">
-		</label><br>
+				<label>
+					Select a file:
+					<input type="file" id="file_input" required>
+				</label><br>
 
-		<label>
-			<button id="button" type="submit"> Submit </button>
-		</label>
-	</form>
+				<label for="chunk_size"> Chunk Size (between 1 and 100 MB):
+					<input type="number" id="cs_number" min="1" max="100" step="1" value="12"><br>
+					<input type="range" id="cs_range" min="1" max="100" step="1" value="12" list="markers">
+				</label><br>
 
-	<div id="progress_container" class="progress_container" style="display: none;">
-		<div id="progress_bar" class="progress_bar">
-			<div id="progress_bar_inner" class="progress_bar_inner" style="width: 0%;"></div>
+				<label for="simultaneous_uploads"> Simultaneous Uploads (between 1 and 100 packets):
+					<input type="number" id="su_number" min="1" max="100" step="1" value="25"><br>
+					<input type="range" id="su_range" min="1" max="100" step="1" value="25" list="markers">
+				</label><br>
+
+				<label>
+					<button id="button" type="submit"> Submit </button>
+				</label>
+			</form>
+
+			<div id="progress_container" class="progress_container" style="display: none;">
+				<div id="progress_bar" class="progress_bar">
+					<div id="progress_bar_inner" class="progress_bar_inner" style="width: 0%;"></div>
+				</div>
+				<div id="progress_text" class="progress_text">
+					<span id="progress_state"> Uploading... </span>
+					<span id="progress_percent"></span>
+					<span id="progress_size"></span>
+					<span id="progress_speed"></span>
+				</div>
+				<div id="progress_time" class="progress_time">
+					<span>
+						<span> Time Elapsed: </span>
+						<span id="progress_time_elapsed"> - </span>
+					</span>
+					<span>
+						<span> Time Remaining: </span>
+						<span id="progress_time_remaining"> - </span>
+					</span>
+				</div>
+			</div>
 		</div>
-		<div id="progress_text" class="progress_text">
-			<span id="progress_state"> Uploading... </span>
-			<span id="progress_percent"></span>
-			<span id="progress_size"></span>
-			<span id="progress_speed"></span>
-		</div>
-		<div id="progress_time" class="progress_time">
-			<span>
-				<span> Time Elapsed: </span>
-				<span id="progress_time_elapsed"> - </span>
-			</span>
-			<span>
-				<span> Time Remaining: </span>
-				<span id="progress_time_remaining"> - </span>
-			</span>
+
+		<div id="file_explorer">
+			<h2> File Explorer </h2>
+			<div id="file_explorer_buttons">
+				<button id="refresh_button"> Refresh </button>
+				<button id="show_uploaded_files"> Uploaded Files </button>
+				<button id="show_temporary_files"> Temporary Files </button>
+			</div>
+			<table id="file_explorer_table">
+				<thead>
+					<tr>
+						<th> File Name </th>
+						<th> File Size </th>
+						<th> File Type </th>
+						<th> Actions </th>
+					</tr>
+				</thead>
+				<tbody id="file_explorer_table_body">
+					<br>
+				</tbody>
+			</table>
 		</div>
 	</div>
 

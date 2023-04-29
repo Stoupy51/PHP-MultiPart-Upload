@@ -3,6 +3,9 @@
 // Require the ST_FileUploadUtils class
 require_once "src/ST_FileUploadUtils.php";
 
+// Handle login
+ST_FileUploadUtils::handleLogin();
+
 try {
 
 	// Handle file chunk upload : response code 200 for "OK" and 400 for "Bad Request"
