@@ -257,6 +257,10 @@ class ST_FileUploadUtils {
 			// Get the names of the files without the path to uploaded files folder
 			foreach ($files as $file) {
 
+				// Ignore .md files
+				if (substr($file, -3) == ".md")
+					continue;
+
 				// Get the base name and the size
 				$baseName = basename($file);
 				$filesize = filesize($file);
@@ -405,7 +409,6 @@ class ST_FileUploadUtils {
 		<div id="file_explorer">
 			<h2> File Explorer </h2>
 			<div>
-				<button id="refresh_button"> Refresh </button>
 				<button id="show_uploaded_files"> Uploaded Files </button>
 				<button id="show_temporary_files"> Temporary Files </button>
 			</div>
@@ -1179,7 +1182,6 @@ async function uploadFile(number, chunk, controller) {
 // Constants
 const fileExplorer = document.getElementById("file_explorer");
 const fileExplorerTableBody = document.getElementById("file_explorer_table_body");
-const refreshButton = document.getElementById("refresh_button");
 const showUploadedFilesButton = document.getElementById("show_uploaded_files");
 const showTemporaryFilesButton = document.getElementById("show_temporary_files");
 
@@ -1187,7 +1189,6 @@ const showTemporaryFilesButton = document.getElementById("show_temporary_files")
 var fileExplorerType = $uploaded_files_folder_value;	// 1 = uploaded files, 2 = temporary files
 
 // Add event listeners
-refreshButton.addEventListener("click", refreshFileExplorer);
 showUploadedFilesButton.addEventListener("click", showUploadedFiles);
 showTemporaryFilesButton.addEventListener("click", showTemporaryFiles);
 
