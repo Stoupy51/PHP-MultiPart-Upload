@@ -559,19 +559,20 @@ HTML;
 	--error_bg_color: rgb(255, 205, 205);
 	--error_color: rgb(102, 3, 3);
 	--error_border_color: rgb(255, 156, 156);
-	--root_background_color: #555555; /* e9e9e9 */
+	--root_background_color: #1e1e1e; /* e9e9e9 */
 	--root_font-size: 16px;
 	--root_box_shadow:	2px 2px 1px -1px rgba(0, 0, 0, 0.2),
 						0px 1px 1px 0px rgba(0, 0, 0, 0.14),
 						0px 1px 3px 0px rgba(0, 0, 0, 0.12);
-	--root_bg_color_main: #f2f2f2;
-	--root_bg_color_secondary: #dddddd;
-	--root_bg_color_tertiary: #cccccc;					
+	--root_color_main: #f2f2f2;
+	--root_color_secondary: #dddddd;
+	--root_color_tertiary: #cccccc;
 
 
 	/* Bases */
 	background: var(--root_background_color);
 	font-size: var(--root_font-size);
+	color : var(--root_color_main);
 }
 
 
@@ -820,6 +821,10 @@ label {
 
 .progress_time > span > span:nth-child(1) {
 	width: 25%;
+}
+
+tr > td:nth-child(2) {
+	text-align: right;
 }
 
 
