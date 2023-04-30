@@ -16,7 +16,7 @@ class ST_FileUploadUtils {
 	public const UPLOADED_FILES_FOLDER_VALUE = 1;
 	public const TEMPORARY_FILES_FOLDER_VALUE = 2;
 
-	// The password is the sha256 hash
+	// The password is a sha256 hash
 	private const password = "8fb85e182764a8abceb4668b004014936e18f1fe1e5e413c476605b534591396";
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1114,8 +1114,9 @@ function handleSubmit(event) {
 			button.innerHTML = "Upload";
 			isRunning = false;
 
-			// Wait for the response and return
+			// Wait for the response and refresh file explorer
 			await response.text();
+			refreshFileExplorer();
 
 			// Set the progress bar to 100% and return
 			progressBarInner.style.width = "100%";
@@ -1230,8 +1231,10 @@ function refreshFileExplorer(event) {
 			var l_filesize = document.createElement("td");
 			if (file[1])
 				l_filesize.innerHTML = convertIntBytesToString(file[1]);
-			else
+			else {
 				l_filesize.innerHTML = "-";
+				l_filesize.style.textAlign = "center";
+			}
 			var l_actions = document.createElement("td");
 
 			// If the file explorer is for uploaded files, add the download button
