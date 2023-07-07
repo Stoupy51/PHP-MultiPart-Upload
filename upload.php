@@ -1380,7 +1380,12 @@ JS;
 	}
 }
 
-ini_set('display_errors', 1);
+ini_set("display_errors", 1);
+ini_set("upload_max_filesize", "128M");
+ini_set("post_max_size", "128M");
+ini_set("memory_limit", "256M");
+ini_set("max_execution_time", "3600");
+
 
 ///// Manage client requests
 // Handle login
