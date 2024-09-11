@@ -369,8 +369,14 @@ class ST_FileUploadUtils {
 				</datalist>
 
 				<label>
-					Select files:
-					<input type="file" id="file_input" required multiple>
+					Torrent/Magnet Link (no progress bar):
+					<input type="text" id="torrent_input">
+					<button id="torrent_button"> Download </button>
+				</label><br>
+
+				<label>
+					Or, select files:
+					<input type="file" id="file_input" multiple>
 				</label><br>
 
 				<label for="chunk_size"> Chunk Size (between 1 and 100 MB):
@@ -384,7 +390,7 @@ class ST_FileUploadUtils {
 				</label><br>
 
 				<label>
-					<button id="button" type="submit"> Submit </button>
+					<button id="submit_button" type="submit"> Submit </button>
 				</label>
 			</form>
 
@@ -472,6 +478,62 @@ HTML;
 	}
 
 	/**
+	 * Handles the torrent upload by downloading the torrent file or using the magnet link.
+	 * 
+	 * @param string $torrentInput		The torrent input containing the magnet link or the torrent file link.
+	 * 
+	 * @throws Exception				- The torrent file could not be downloaded.
+	 * 									- Unrecognized torrent input.
+	 * 
+	 * @return void
+	 */
+	public static function handle_torrent_upload(string $torrentInput) : void {
+
+		// If the torrent input is a torrent link (endswith .torrent), download the torrent file and convert it to a magnet link
+		$magnetLink = $torrentInput;
+		if (substr($torrentInput, -strlen(".torrent")) === ".torrent") {
+
+			// Get the torrent file
+			$torrentFile = file_get_contents($torrentInput);
+			if ($torrentFile === false)
+				throw new Exception("[Error handle_torrent_upload()] Could not download torrent file '$torrentInput'.");
+
+			// Save the torrent file
+			$torrentPath = self::TEMPORARY_FILES_FOLDER . "/" . basename($torrentInput);
+			file_put_contents($torrentPath, $torrentFile);
+
+			// Convert the torrent file to a magnet link using "transmission-show -m path"
+			$command = escapeshellcmd("transmission-show -m $torrentPath");
+			$magnetLink = shell_exec($command);
+			if ($magnetLink === false)
+				throw new Exception("[Error handle_torrent_upload()] Could not convert torrent file to magnet link, check if 'transmission-cli' and 'transmission-daemon' (service enabled) are installed on the server.");
+
+			// Delete the torrent file
+			unlink($torrentPath);
+		}
+
+		// If the torrent input is a magnet link, add it to the transmission queue
+		else if (substr($torrentInput, 0, strlen("magnet:")) === "magnet:") {
+
+			// Get full path to uploaded files folder
+			$uploadedFilesFolder = realpath(self::UPLOADED_FILES_FOLDER);
+
+			// Add the magnet link to the transmission queue
+			$command = escapeshellcmd("transmission-remote -a $torrentInput --download-dir $uploadedFilesFolder");
+			$output = shell_exec($command);
+			if ($output === false)
+				throw new Exception("[Error handle_torrent_upload()] Could not add magnet link to transmission");
+
+			// Return the output
+			echo "Destination: $uploadedFilesFolder\n<br>\nCommand: $command\n<br>\nOutput: $output";
+		}
+
+		// If the torrent input is not recognized
+		else
+			throw new Exception("[Error handle_torrent_upload()] Unrecognized torrent input.");
+	}
+
+	/**
 	 * Manage the tasks of the receiver such as:
 	 * - Canceling an upload
 	 * - Finishing an upload
@@ -479,6 +541,7 @@ HTML;
 	 * - Listing the files
 	 * - Deleting a file
 	 * - Forcing the merge of a file
+	 * - Handling a torrent upload
 	 * 
 	 * @return bool
 	 */
@@ -516,6 +579,10 @@ HTML;
 				
 				case "force_merge":
 					self::mergeFileChunks(-1, $_POST["filename"], false);
+					break;
+				
+				case "torrent_upload":
+					self::handle_torrent_upload($_POST["torrent_input"]);
 					break;
 				
 				default:
@@ -910,8 +977,10 @@ su_number.addEventListener("input", function() { su_range.value = su_number.valu
 
 // Constants
 const form = document.getElementById("form");
+const torrentInput = document.getElementById("torrent_input");
+const torrentButton = document.getElementById("torrent_button");
 const fileInput = document.getElementById("file_input");
-const button = document.getElementById("button");
+const submit_button = document.getElementById("submit_button");
 const receiverLink = "$file_link";
 const progressContainer = document.getElementById("progress_container");	// Progress bar container element
 const progressBarInner = document.getElementById("progress_bar_inner");		// Progress bar inner element
@@ -931,6 +1000,9 @@ var progressiveSize = 0;				// Current amount of bytes uploaded (used for the pr
 
 // Add an event listener to the form
 form.addEventListener("submit", handleSubmit);
+
+// Add an event listener to the torrent button
+torrentButton.addEventListener("click", handleTorrentButton);
 
 
 /**
@@ -1192,7 +1264,7 @@ async function handleSubmit(event) {
 		}
 
 		// Reset the form
-		button.innerHTML = "Upload";
+		submit_button.innerHTML = "Upload";
 		isRunning = false;
 
 		// Reset the progress bar
@@ -1207,7 +1279,7 @@ async function handleSubmit(event) {
 	}
 
 	// Change the button text and the script as running
-	button.innerHTML = "Cancel";
+	submit_button.innerHTML = "Cancel";
 	isRunning = true;
 
 	// Get the total size of the files to upload
@@ -1269,11 +1341,36 @@ async function handleSubmit(event) {
 	progressBarInner.style.backgroundColor = "rgb(0, 169, 0)";
 	
 	// Reset the form
-	button.innerHTML = "Upload";
+	submit_button.innerHTML = "Upload";
 	isRunning = false;
 }
 
+/**
+ * Handle the torrent button click event to read the input and send a request to the server.
+ * 
+ * @param {Event} event The torrent button click event
+ */
+function handleTorrentButton(event) {
+	
+	// Prevent the default form submission
+	event.preventDefault();
 
+	// Send a request to the server with the torrent/magnet input
+	const formData = new FormData();
+	formData.append("request_type", "torrent_upload");
+	formData.append("torrent_input", torrentInput.value);
+	fetch(receiverLink, {
+		method: "POST",
+		body: formData
+	})
+	.then(response => response.text())
+
+	// Wait for the response
+	.then(data => {
+		alert(data);
+		refreshFileExplorer();
+	});
+}
 
 
 //////////////////////////////////////////////////////////
