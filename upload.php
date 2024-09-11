@@ -506,7 +506,8 @@ HTML;
 			$command = escapeshellcmd("transmission-show -m $torrentPath");
 			$magnetLink = shell_exec($command);
 			if ($magnetLink === false)
-				throw new Exception("[Error handle_torrent_upload()] Could not convert torrent file to magnet link, check if 'transmission-cli' and 'transmission-daemon' (service enabled) are installed on the server.");
+				throw new Exception("[Error handle_torrent_upload()] Could not convert torrent file to magnet link, check if 'transmission-cli' and 'transmission-daemon' (service enabled) are installed on the server.\n<br>\nHints: 'apt install transmission-cli transmission-daemon' & 'sudo usermod -aG www-data debian-transmission'");
+
 
 			// Delete the torrent file
 			unlink($torrentPath);
@@ -525,7 +526,7 @@ HTML;
 				throw new Exception("[Error handle_torrent_upload()] Could not add magnet link to transmission");
 
 			// Return the output
-			echo "Destination: $uploadedFilesFolder\n<br>\nCommand: $command\n<br>\nOutput: $output";
+			echo "Destination: $uploadedFilesFolder\nOutput: $output";
 		}
 
 		// If the torrent input is not recognized
