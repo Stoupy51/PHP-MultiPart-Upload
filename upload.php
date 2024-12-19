@@ -336,6 +336,7 @@ class ST_FileUploadUtils {
 	public static function getHTML() : string {
 		$css = self::generateCss();
 		$js = self::generateJs();
+		$image_url = "https://paralya.fr/img/background_reborn.jpg";
 
 		return <<<HTML
 
@@ -347,6 +348,7 @@ class ST_FileUploadUtils {
 	$css
 </head>
 <body>
+	<img class="background-image" src="$image_url" alt="Background Pattern">
 	<h1 style="text-align: center;"> Chunk Splitting Uploader </h1>
 
 	<div id="container" style="position: relative; width: 100%; height: 100%; display: flex; justify-content: space-around;">
@@ -626,283 +628,278 @@ HTML;
 
 /* Root */
 :root {
-	/* Constantes */
-	--primary_color: #448a95;
-	--base_animation_duration: 30s;
-	--alert_bg_color: rgb(255, 243, 205);
-	--alert_color: rgb(102, 77, 3);
-	--alert_border_color: rgb(255, 230, 156);
-	--error_bg_color: rgb(255, 205, 205);
-	--error_color: rgb(102, 3, 3);
-	--error_border_color: rgb(255, 156, 156);
-	--root_background_color: #1e1e1e; /* e9e9e9 */
-	--root_font-size: 16px;
-	--root_box_shadow:	2px 2px 1px -1px rgba(0, 0, 0, 0.2),
-						0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-						0px 1px 3px 0px rgba(0, 0, 0, 0.12);
-	--root_color_main: #f2f2f2;
-	--root_color_secondary: #dddddd;
-	--root_color_tertiary: #cccccc;
-
-
-	/* Bases */
-	background: var(--root_background_color);
-	font-size: var(--root_font-size);
-	color : var(--root_color_main);
+	/* Constants */
+	--primary-color: #4a90e2;
+	--secondary-color: #2ecc71;
+	--background-color: #1a1a1a;
+	--card-background: #242424;
+	--text-color: #e0e0e0;
+	--text-muted: #a0a0a0;
+	--border-color: #333333;
+	--error-color: #e74c3c;
+	--success-color: #2ecc71;
+	--warning-color: #f1c40f;
+	--border-radius: 8px;
+	--shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	--base-animation-duration: 30s;
 }
 
-
-
-
-
-
-/* Global */
-.as_primary_color {
-	background-color: var(--primary_color);
+/* Global Styles */
+body {
+	font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+	background-color: var(--background-color);
+	color: var(--text-color);
+	margin: 0;
+	min-height: 100vh;
 }
 
-.as_header {
-	top: 0;
-	position: fixed;
-	width: 100%;
-	z-index: -101;
-	padding-top: 62px;
-}
-
-.as_footer {
-	bottom: 0;
-	position: fixed;
-	width: 100%;
-	z-index: 100;
-}
-
-.as_hx {
-	font-size: 28px;
-	font-weight: 600;
-	white-space: wrap;
-	line-height: 33.6px;
-	color: #000000;
-	padding: 1rem;
-	border-radius: 0.5rem;
-	background-color: var(--root_background_color);
+h1 {
+	color: var(--text-color);
+	font-size: 2.5rem;
+	margin: 1rem 0;
+	padding: 0.3rem;
+	border: 2px solid var(--primary-color);
+	border-radius: var(--border-radius);
 	width: fit-content;
-	margin: auto;
-	box-shadow:
-		0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-		0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-		0px 1px 3px 0px rgba(0, 0, 0, 0.12);
-}
-
-.as_top_container {
-	position: absolute;
-	top: 3rem;
+	transform: translateX(-50%);
 	left: 50%;
-	transform: translate(-50%, 0);
-	padding-bottom: 4rem;
-	width: max(35vw, 540px);
+	display: inline-block;
+	position: relative;
+	background-color: var(--background-color);
 }
 
-.as_warning {
+h2 {
+	color: var(--text-color);
+	font-size: 1.8rem;
+	margin: 0.8rem 0;
+	padding-bottom: 0.3rem;
+	border-bottom: 2px solid var(--primary-color);
+	width: fit-content;
+}
+
+/* Container Layout */
+#container {
+	max-width: 1400px;
+	margin: 0 auto;
+	display: flex;
+	gap: 1rem;
+	padding: 0.5rem;
+}
+
+#upload_part, #file_explorer {
+	background: var(--card-background);
 	padding: 1rem;
-	margin: 1rem auto;
-
-	color: var(--alert_color);
-	background-color: var(--alert_bg_color);
-	border: 1px solid var(--alert_border_color);
-	border-radius: 5px;
-
-	width: max(35vw, 540px);
-	box-shadow:
-		0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-		0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-		0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+	border-radius: var(--border-radius);
+	box-shadow: var(--shadow);
+	flex: 1;
 }
 
-.as_error {
+/* Form Styles */
+#form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.8rem;
+}
+
+label {
+	color: var(--text-muted);
+	margin-bottom: 0.2rem;
+	display: block;
+}
+
+input[type="file"],
+input[type="text"],
+input[type="number"],
+input[type="range"] {
+	width: 100%;
+	padding: 0.5rem;
+	background: var(--background-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	color: var(--text-color);
+	margin-top: 0.2rem;
+}
+
+input[type="range"] {
+	accent-color: var(--primary-color);
+}
+
+button {
+	background-color: var(--primary-color);
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: var(--border-radius);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-weight: 500;
+}
+
+button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress Bar */
+.progress_container {
+	background: var(--background-color);
 	padding: 1rem;
-	margin: 1rem auto;
-
-	color: var(--error_color);
-	background-color: var(--error_bg_color);
-	border: 1px solid var(--error_border_color);
-	border-radius: 5px;
-
-	width: 35vw;
-	box-shadow:
-		0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-		0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-		0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+	border-radius: var(--border-radius);
+	margin-top: 1rem;
+	border: 1px solid var(--border-color);
 }
 
-.as_navigation {
-	z-index: 100;
-	position: fixed;
-	top: 0;
-	right: 0;
-	background-color: #4da1ae;
-	border-bottom-left-radius: 0.75rem;
-
-	/* Animation qui fait apparaitre la navigation */
-	animation: fadeIn 0.5s ease-in-out;
+.progress_bar {
+	background: var(--border-color);
+	height: 12px;
+	border-radius: 6px;
+	overflow: hidden;
+	margin: 0.5rem 0;
 }
 
-.as_navigation > a {
-	text-decoration: 0;
+.progress_bar_inner {
+	background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+	height: 100%;
+	transition: width 0.3s ease;
 }
 
-.as_home_button, .as_logout_button {
-	padding: 0.75rem;
-	width: 64px;
+.progress_text {
+	display: flex;
+	justify-content: space-between;
+	color: var(--text-muted);
+	font-size: 0.9rem;
+	margin-top: 0.5rem;
 }
 
-.as_logout_button {
-	background-color: #4896a1;
+.progress_time {
+	margin-top: 0.5rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.5rem;
+	color: var(--text-muted);
 }
 
-
-
-/* Banner */
-@keyframes fadeIn {
-	0% { opacity: 0; } 
-	100% { opacity: 1; }
+/* File Explorer */
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 0.5rem;
 }
 
-.as_banner {
-	position: fixed;
-	z-index: -100;
-	right: 0;
-	bottom: -50px;
-	width: 1500px;
+th {
+	text-align: left;
+	padding: 0.5rem;
+	background: var(--background-color);
+	color: var(--text-muted);
+	font-weight: 500;
 }
 
+td {
+	padding: 0.5rem;
+	border-bottom: 1px solid var(--border-color);
+}
 
-/* Gestion des vagues */
+td button {
+	margin-right: 0.3rem;
+	font-size: 0.9rem;
+	padding: 0.3rem 0.8rem;
+}
+
+td button:last-child {
+	background-color: var(--error-color);
+}
+
+/* Wave Animation */
 .as_waves {
 	position: fixed;
 	top: 60px;
 	width: 100%;
 	height: 15vh;
 	margin-bottom: -7px;
-	/* Fix for safari gap */
 	min-height: 100px;
 	max-height: 150px;
-	scale: 1 -1;
+	transform: scale(1, -1);
+	z-index: -1;
 }
 
 .as_parallax > use {
 	animation: move-forever 25s cubic-bezier(.55, .5, .45, .5) infinite;
-	fill: var(--primary_color)
+	fill: var(--primary-color);
+	opacity: 0.1;
 }
 
 .as_parallax > use:nth-child(1) {
 	animation-delay: -10s;
-	animation-duration: calc(var(--base_animation_duration));
-	opacity: 0.7;
+	animation-duration: var(--base-animation-duration);
 }
 
 .as_parallax > use:nth-child(2) {
 	animation-delay: -16s;
-	animation-duration: calc(var(--base_animation_duration) * 1.0);
-	opacity: 0.5;
+	animation-duration: calc(var(--base-animation-duration) * 1.4);
+	opacity: 0.08;
 }
 
 .as_parallax > use:nth-child(3) {
 	animation-delay: -20s;
-	animation-duration: calc(var(--base_animation_duration) * 1.6);
-	opacity: 0.2;
+	animation-duration: calc(var(--base-animation-duration) * 1.8);
+	opacity: 0.05;
 }
 
 .as_parallax > use:nth-child(4) {
 	animation-delay: -25s;
-	animation-duration: calc(var(--base_animation_duration) * 3.0);
+	animation-duration: calc(var(--base-animation-duration) * 2.2);
+	opacity: 0.03;
 }
 
 @keyframes move-forever {
-	0% {
-		transform: translate3d(-90px, 0, 0);
+	0% { transform: translate3d(-90px, 0, 0); }
+	100% { transform: translate3d(85px, 0, 0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+	#container {
+		flex-direction: column;
+	}
+	
+	#upload_part, #file_explorer {
+		width: 100%;
 	}
 
-	100% {
-		transform: translate3d(85px, 0, 0);
+	input[type="range"], .progress_container {
+		width: 100%;
 	}
 }
 
-
-/* TODO : Adaptation au mobile */
 @media (max-width: 600px) {
-
-	/* Correction des largeurs */
-	.as_warning, .as_error, .as_top_container {
-		width: 90vw;
+	body {
+		padding: 5px;
 	}
 
-	/* Correction des hauteurs */
-	.as_top_container {
-		top: 5rem;
+	h1 {
+		font-size: 2rem;
 	}
-};
 
+	h2 {
+		font-size: 1.5rem;
+	}
 
-
-html {
-	height: 100%;
+	#upload_part, #file_explorer {
+		padding: 0.8rem;
+	}
 }
 
-input[type="range"], .progress_container {
-	width: 30rem;
+/* Add these styles */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    pointer-events: none;
+    object-fit: cover;
 }
-
-label {
-	width: fit-content;
-	display: block;
-}
-
-.progress_container {
-	margin-top: 1rem;
-}
-
-.progress_bar {
-	width: 100%;
-	display: block;
-	height: 20px;
-
-	border: 1px solid #000;
-	border-radius: 5px;
-}
-
-.progress_bar_inner {
-	background-color: rgb(255, 169, 0);
-	display: block;
-	height: 100%;
-	transition: width 1s ease;
-}
-
-.progress_text {
-	margin-top: 1rem;
-	display: flex;
-	justify-content: space-between;
-}
-
-.progress_text span {
-	display: inline-block;
-}
-
-.progress_text span:nth-child(1), .progress_text span:nth-child(3) {
-	text-decoration: underline;
-}
-
-.progress_time span {
-	display: flex;
-}
-
-.progress_time > span > span:nth-child(1) {
-	width: 25%;
-}
-
-tr > td:nth-child(2) {
-	text-align: right;
-}
-
 
 CSS
 			.
